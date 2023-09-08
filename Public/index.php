@@ -2,18 +2,187 @@
 
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
+use Illuminate\Database\Capsule\Manager as Capsule;
 
 require '../vendor/autoload.php';
 
-$app = new \Slim\App;
+$app = new \Slim\App(
+    [
+        'settings' => ['displayErrorDetails' => true]
+    ]
+);
 
-/* Padrão PSR7 */
+$container = $app->getContainer();
+$container['db'] = function () {
+
+    $capsule = new Capsule;
+
+    $capsule->addConnection([
+        'driver' => 'mysql',
+        'host' => 'localhost',
+        'database' => 'slim',
+        'username' => 'root',
+        'password' => '',
+        'charset' => 'utf8',
+        'collation' => 'utf8_unicode_ci',
+        'prefix' => '',
+    ]);
+    $capsule->setAsGlobal();
+    $capsule->bootEloquent();
+    return $capsule;
+};
+
+$app->get('/usuarios', function (Request $request, Response $response) {
+    $db = $this->get('db');
+    /*$db->schema()->dropIfExists('usuarios');
+    $db->schema()->create('usuarios', function($table){
+        $table->increments('id');
+        $table->string('nome');
+        $table->string('email');
+        $table->timestamps();
+    });*/
+
+    /*
+        //Inserir
+        $db->table('usuarios')->insert([
+            'nome' => 'Bruno Souza',
+            'email' => 'teste@teste.com'
+        ]);
+    */
+    /*
+    //Atualizar
+    $db->table('usuarios')
+                ->where('id', 1)
+                ->Update([
+                    'nome' => 'Bruno',
+                ]);
+    */
+
+    /*
+    // Deletar
+    $db->table('usuarios')
+        ->where('id', 1)
+        ->delete();
+    */
+
+    //Listar
+    $usuarios = $db->table('usuarios')->get();
+    foreach ($usuarios as $usuario) {
+        echo $usuario->nome . '<br>';
+    }
+
+});
+
+$app->run();
+
+/*
+//Tipos de resposta cabeçalho, texto, json, XML
+
+$app->get('/header', function (Request $request, Response $response) {
+    $response->write('testeaaaaaaaaaaaaaaaaaaaaaaaaa');
+    return $response->withHeader('allow', 'PUT')
+        ->withAddedHeader('Content-Length', 10);
+});
+
+$app->get('/json', function (Request $request, Response $response) {
+    return $response->withJson([
+        "Nome" => "Bruno",
+        "Sobrenome" => "Souza",
+        "Idade" => "18"
+    ]);
+});
+
+$app->get('/xml', function (Request $request, Response $response) {
+    $xml = file_get_contents('A:\Projetos\Slim_Framework\arquivo.xml');
+    $response->write($xml);
+
+    return $response->withHeader('Content-Type', 'application/xml');
+});
+*/
+
+
+
+
+
+/*
+// Middware
+
+$app->add(function ($request, $response, $next) {
+    $response->write(' Inicio camada 1 + ');
+    //return $next($request, $response);
+    $response = $next($request, $response);
+    $response->write(' + Fim camada 1');
+
+    return $response;
+});
+
+$app->add(function ($request, $response, $next) {
+    $response->write(' Inicio camada 2 + ');
+    //return $next($request, $response);
+    $response = $next($request, $response);
+    $response->write(' + Fim camada 2');
+
+    return $response;
+});
+
+
+$app->get('/usuarios', function (Request $request, Response $response) {
+
+    $response->write(' Ação principal usuarios');
+
+});
+
 $app->get('/postagens', function (Request $request, Response $response) {
-    /* Escreve no corpo da resposta utilizando o padrão PSR7 */
+
+    $response->write(' Ação principal postagens');
+
+});
+*/
+
+
+
+
+
+
+
+/*
+// Container dependency injection
+class Servico
+{
+
+}
+
+//Container Pimple
+$container = $app->getContainer();
+$container['servico'] = function () {
+    return new Servico;
+};
+
+$app->get('/servico', function (Request $request, Response $response) {
+    $servico = $this->get('servico');
+    var_dump($servico);
+});
+
+//Controllers como serviço
+
+$container = $app->getContainer();
+$container['Home'] = function () {
+    return new MyApp\controllers\Home( new MyApp\View);
+};
+
+$app->get('/usuario', 'Home:index');
+
+*/
+
+
+/* Padrão PSR7 
+$app->get('/postagens', function (Request $request, Response $response) {
+    //Escreve no corpo da resposta utilizando o padrão PSR7
     $response->getBody()->write("Listagem de postagens");
 
     return $response;
 });
+*/
 
 /* 
 Tipos de requisição ou Verbos HTTP
@@ -24,19 +193,20 @@ put -> Atualizar dados no servidor (Update)
 delete -> Deletar dados do servidor (Delete)
 
 */
-
+/*
 $app->delete('/usuarios/remove/{id}', function (Request $request, Response $response) {
     
     $id = $request->getAttribute('id');
 
-    /*
-    Deletar do banco de dados com DELETE..
-    */
+    
+    //Deletar do banco de dados com DELETE..
+    
 
     return $response->getBody()->write("Sucesso ao deletar: " . $id);
 
 });
-
+*/
+/*
 $app->put('/usuarios/atualiza', function (Request $request, Response $response) {
     //recuperar post($_POST)
     $post = $request->getParsedBody();
@@ -44,29 +214,30 @@ $app->put('/usuarios/atualiza', function (Request $request, Response $response) 
     $nome = $post['nome'];
     $email = $post['email'];
 
-    /*
-    Salvar no banco de dados com INSERT INTO..
-    */
+    
+    //Salvar no banco de dados com INSERT INTO..
+    
 
     return $response->getBody()->write("Sucesso ao atualizar: " . $id);
 
 });
-
+*/
+/*
 $app->post('/usuarios/adiciona', function (Request $request, Response $response) {
     //recuperar post($_POST)
     $post = $request->getParsedBody();
     $nome = $post['nome'];
     $email = $post['email'];
 
-    /*
-    Salvar no banco de dados com INSERT INTO..
-    */
+    
+    //Salvar no banco de dados com INSERT INTO..
+    
 
     return $response->getBody()->write("Sucesso");
 
 });
+*/
 
-$app->run();
 
 /*
 $app->get('/postagens2', function () {
